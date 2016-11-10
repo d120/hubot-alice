@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "pyophase": {
+      "production": {
+        "host": "glados",
+        "command": "sudo pyophasectl update"
+      }
+    },
+    "pyofahrt": {
+      "production": {
+        "host": "glados",
+        "command": "sudo pyofahrtctl update"
+      }
+    }
+  }
+}

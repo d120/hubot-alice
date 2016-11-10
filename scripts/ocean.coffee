@@ -28,7 +28,7 @@ module.exports = (robot) ->
       res.reply "Project #{project} has no environment #{environment} configured. Did you mistype?"
 
     deploy context, (err, stdout, stderr, duration) ->
-      if err || stderr.length == 0
+      if err || stderr.length > 0
         res.send "Attention everybody: Deployment of #{project} to #{environment} has failed. Please investigate!"
       else
         res.send "Deployment of #{project} to #{environment} took #{duration} seconds."
@@ -37,8 +37,13 @@ module.exports = (robot) ->
 
   deploy = (context, cb) ->
     startTime = new Date().getTime()
-    command = "ssh jlauinger@#{context.host} \"#{context.command}\""
+    command = "df -h"
 
     exec command, (error, stdout, stderr) ->
-      duration = new Date().getTime() - startTime
+      duration = (new Date().getTime() - startTime) / 1000
+
+      lines = stdout.split '\n'
+      lines = lines.slice Math.max lines.length - 10, 1
+      stdout = lines.join '\n'
+
       cb error, stdout, stderr, duration

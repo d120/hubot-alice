@@ -2,14 +2,14 @@
   "projects": {
     "pyophase": {
       "production": {
-        "host": "glados",
-        "command": "sudo pyophasectl update"
+        "host": "-p 2222 turret",
+        "command": "pyophasectl version"
       }
     },
     "pyofahrt": {
       "production": {
-        "host": "glados",
-        "command": "sudo pyofahrtctl update"
+        "host": "-p 2222 turret",
+        "command": "pyofahrtctl version"
       }
     }
   }

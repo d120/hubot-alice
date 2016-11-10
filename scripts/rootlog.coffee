@@ -12,8 +12,10 @@ moment = require 'moment'
 module.exports = (robot) ->
 
   filename = process.env.HUBOT_ROOTLOG_FILENAME
-  room = process.env.HUBOT_ROOMID_TESTROOM
+  roomsFilename = process.env.HUBOT_ROOMS_CONFIG
 
+  rooms = JSON.parse fs.readFileSync roomsFilename, 'utf8'
+  room = rooms["test"]
 
   robot.respond /rootlog (.*)/i, (res) ->
     message = res.match[1]

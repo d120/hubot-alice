@@ -33,17 +33,21 @@ module.exports = (robot) ->
       else
         res.send "Deployment of #{project} to #{environment} took #{duration} seconds."
         res.sendCode stdout
+        res.reply "Your deployment has finished. Please be aware of any possible bugs or regressions!
 
 
   deploy = (context, cb) ->
     startTime = new Date().getTime()
-    command = "df -h"
+    command = "ssh #{context.host} \"#{context.command}\""
 
+    console.log command
     exec command, (error, stdout, stderr) ->
       duration = (new Date().getTime() - startTime) / 1000
 
+      console.log stdout
+
       lines = stdout.split '\n'
-      lines = lines.slice Math.max lines.length - 10, 1
+      lines = lines.slice Math.max lines.length - 10, 0
       stdout = lines.join '\n'
 
       cb error, stdout, stderr, duration

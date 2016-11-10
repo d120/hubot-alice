@@ -2,6 +2,8 @@
 #   execute arbitrary shell code
 # Commands:
 #   hubot exec - executes shell scripts
+# Author:
+#   Johannes Lauinger <jlauinger@d120.de>
 
 exec = require('child_process').exec;
 

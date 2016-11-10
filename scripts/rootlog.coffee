@@ -3,6 +3,8 @@
 # Commands:
 #   hubot rootlog - add a new rootlog
 #   hubot what's changed - show rootlogs
+# Author:
+#   Johannes Lauinger <jlauinger@d120.de>
 
 fs = require 'fs'
 moment = require 'moment'

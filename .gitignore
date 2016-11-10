@@ -1,0 +1,6 @@
+Procfile
+.editorconfig
+node_modules/
+bin/hubot.cmd
+
+*.env

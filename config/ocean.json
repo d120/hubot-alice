@@ -3,13 +3,19 @@
     "pyophase": {
       "production": {
         "host": "-p 2222 turret",
-        "command": "pyophasectl version"
+        "command": "sudo /usr/local/bin/pyophasectl update"
       }
     },
     "pyofahrt": {
       "production": {
         "host": "-p 2222 turret",
-        "command": "pyofahrtctl version"
+        "command": "sudo /usr/local/bin/pyofahrtctl update"
+      }
+    },
+    "test": {
+      "atlas": {
+        "host": "atlas",
+        "command": "date; id; nonexistent"
       }
     }
   }

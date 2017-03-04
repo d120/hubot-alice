@@ -15,7 +15,8 @@ module.exports = (robot) ->
   roomsFilename = process.env.HUBOT_ROOMS_CONFIG
 
   rooms = JSON.parse fs.readFileSync roomsFilename, 'utf8'
-  room = rooms["test"]
+  fss_room = rooms["fss"]
+  info_room = rooms["fss-info"]
 
   robot.respond /rootlog (.*)/i, (res) ->
     message = res.match[1]
@@ -28,9 +29,11 @@ module.exports = (robot) ->
       if err
         res.reply "sorry, there was an error :("
       res.reply "Sure thing, I noted it down!"
+      robot.messageRoom fss_room, "Heads up: #{username} added a new rootlog from chat. See the #fss-info:d120.de room for details or ask me what's changed."
+      robot.messageCodeRoom info_room, content
 
 
-  robot.respond /(what'?s? )?changed\??/i, (res) ->
+  robot.respond /(what'?s? )?(has )?changed\??/i, (res) ->
     fs.readFile filename, 'utf8', (err, data) ->
       if err
         res.reply "sorry, there was an error :("
@@ -52,6 +55,7 @@ module.exports = (robot) ->
       if err
         res.send '500 filesystem error\n'
 
-      robot.messageRoom room, "Heads up: #{data.username} added a new rootlog via HTTP"
-      robot.messageCodeRoom room, content
+      robot.messageRoom fss_room, "Did you hear the word? #{data.username} added a new rootlog via HTTP. See the #fss-info:d120.de room for details or ask me what's changed."
+      robot.messageCodeRoom info_room, content
       res.send '200 OK\n'
+

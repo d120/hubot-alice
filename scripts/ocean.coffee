@@ -30,6 +30,8 @@ module.exports = (robot) ->
     deploy context, (err, stdout, stderr, duration) ->
       if err || stderr.length > 0
         res.send "Attention everybody: Deployment of #{project} to #{environment} has failed. Please investigate!"
+        res.sendCode stderr
+        res.sendCode stdout
       else
         res.send "Deployment of #{project} to #{environment} took #{duration} seconds."
         res.sendCode stdout
@@ -40,11 +42,8 @@ module.exports = (robot) ->
     startTime = new Date().getTime()
     command = "ssh #{context.host} \"#{context.command}\""
 
+    console.log command
+
     exec command, (error, stdout, stderr) ->
       duration = (new Date().getTime() - startTime) / 1000
-
-      lines = stdout.split '\n'
-      lines = lines.slice Math.max lines.length - 10, 0
-      stdout = lines.join '\n'
-
       cb error, stdout, stderr, duration

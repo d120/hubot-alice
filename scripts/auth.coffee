@@ -168,5 +168,5 @@ module.exports = (robot) ->
     if robot.auth.hasRole(context.response.envelope.user, 'admin')
       next()
     else
-      context.response.reply "Sorry, only people with group admin can do that."
+      context.response.reply "Sorry, my creators, the famous FSS team, asked me not to talk to strangers :("
       done()

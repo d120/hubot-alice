@@ -11,6 +11,15 @@
 #   set volume <v> - set volume to numeric value 0 to 100
 #   volume? - show current volume
 #   what's playing? - show current song
+#   current playlist?`- show current playlist
+#   play <query> - search for a matching song and play it
+#   next track - play next track in playlist
+#   mute - set volume to 0
+#   unmute - set volume to 100
+#   pause music - pause playback
+#   resume music - resume playback
+#   start shuffle - set shuffle for current playlist
+#   stop shuffle - don't shuffle playlist anymore
 #
 # Author:
 #   Johannes Lauinger <jlauinger@d120.de>

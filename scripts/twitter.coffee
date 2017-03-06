@@ -24,6 +24,7 @@
 Twit = require "twit"
 
 config = []
+twits = []
 accounts = process.env.HUBOT_TWITTER_ACCOUNTS.split ','
 
 for account in accounts
@@ -34,12 +35,9 @@ for account in accounts
     access_token: process.env["HUBOT_TWITTER_#{account}_ACCESS_TOKEN"]
     access_token_secret: process.env["HUBOT_TWITTER_#{account}_ACCESS_TOKEN_SECRET"]
 
-twits = []
-
 getTwitFor = (account) ->
   account = account.toUpperCase()
   unless twits[account]
-    console.log config[account]
     twits[account] = new Twit config[account]
   return twits[account]
 

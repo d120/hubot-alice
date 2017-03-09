@@ -52,12 +52,12 @@ module.exports = (robot) ->
 
     # Bit "adjustments" - see:
     #  - https://de.wikipedia.org/wiki/RIFF_WAVE
-    #  -  http://soundfile.sapp.org/doc/WaveFormat/
+    #  - http://soundfile.sapp.org/doc/WaveFormat/
     #
-    #  22   24   26   28   30   32   34   36   38   40   42   44
-    # +----+---------+---------+----+----+---------+---------+--------------
-    # | Ch | SamplRa | ByteRat | BA | bps| SubChID | SubChSz | Data...
-    # +----+---------+---------+----+----+---------+---------+--------------
+    #     22   24   26   28   30   32   34   36   38   40   42   44
+    # ---+----+---------+---------+----+----+---------+---------+--------------
+    #    | Ch | SamplRa | ByteRat | BA | bps| SubChID | SubChSz | Data...
+    # ---+----+---------+---------+----+----+---------+---------+--------------
 
     size = (audio.length - 44) * 4
     buf = Array size
@@ -65,13 +65,13 @@ module.exports = (robot) ->
     for i in [0..43]
       buf[i] = audio[i]
 
-    buf[22] = 0x02 # NumChannels (little) [22-23]: 2
-    buf[24] = 0x44 # SamplingRate (little) [24-27]: 44.1 kHz
-    buf[25] = 0xAC # SamplingRate (little) [24-27]: 44.1 kHz
-    buf[28] = 0x10 # ByteRate (little) [28-31]: 44.1 * 4
-    buf[29] = 0xB1 # ByteRate (little) [28-31]: 44.1 * 4
-    buf[30] = 0x02 # ByteRate (little) [28-31]: 44.1 * 4
-    buf[32] = 0x04 # BlockAlign (little) [32-33]: 2*(16+7)//8
+    buf[22] = 0x02  # NumChannels (little) [22-23]: 2
+    buf[24] = 0x44  # SamplingRate (little) [24-27]: 44.1 kHz
+    buf[25] = 0xAC  # SamplingRate (little) [24-27]: 44.1 kHz
+    buf[28] = 0x10  # ByteRate (little) [28-31]: 44.1 * 4
+    buf[29] = 0xB1  # ByteRate (little) [28-31]: 44.1 * 4
+    buf[30] = 0x02  # ByteRate (little) [28-31]: 44.1 * 4
+    buf[32] = 0x04  # BlockAlign (little) [32-33]: 2*(16+7)//8
 
     subChunkSize = 4 * (audio[40] + audio[41]*Math.pow(2,8) + audio[42]*Math.pow(2,16) + audio[43]*Math.pow(2,24))
     buf[40] = (subChunkSize & 0x000000ff) >> 0   # SubChunkSize (little) [40-43]
@@ -81,17 +81,19 @@ module.exports = (robot) ->
 
     for i in [44..size-1] by 2
       if i % 4 == 0
-        ptr = Math.floor((i - 44) / 4) + 44
-        buf[i] = audio[ptr]
-        buf[i+1] = audio[ptr]
+        ptr = Math.floor((i - 44) / 4) + 44                         # copy samples
+        buf[i] = ((audio[ptr] >> 1) | (audio[ptr+1] & 0x80)) - 127  # convert to signed
+        buf[i+1] = (audio[ptr+1] >> 1) - 127
       else
-        ptr1 = Math.floor((i - 44) / 4) + 44 - 2
+        ptr1 = Math.floor((i - 44) / 4) + 44 - 2                    # extract previous and next sample
         ptr2 = Math.floor((i - 44) / 4) + 44 + 2
         sample1 = audio[ptr1] + audio[ptr1]*256
         sample2 = audio[ptr2] + audio[ptr2]*256
-        sample = Math.floor((sample1 + sample2) / 2)
-        buf[i]   = (sample & 0x00ff) >> 0
-        buf[i+1] = (sample & 0xff00) >> 8
+        sample = Math.floor((sample1 + sample2) / 2)                # calculate average as interpolated sample
+        byte1 = (sample & 0x00ff) >> 0                              # split bytes
+        byte2 = (sample & 0xff00) >> 8
+        buf[i]   = ((byte1 >> 1) | (byte2 & 0x80)) - 127            # convert to signed
+        buf[i+1] = (byte2 >> 1) - 127
 
     res.set { 'Content-Type': 'audio/wav' }
     res.send new Buffer buf

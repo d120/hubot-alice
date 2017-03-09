@@ -5,6 +5,9 @@
   "author": "Johannes Lauinger <jlauinger@d120.de>",
   "description": "D120 Bot",
   "dependencies": {
+    "arraybuffer-to-buffer": "0.0.4",
+    "chalk": "^1.1.3",
+    "google-speech": "0.0.5",
     "hubot": "^2.19.0",
     "hubot-diagnostics": "0.0.1",
     "hubot-google-images": "^0.2.6",
@@ -12,8 +15,11 @@
     "hubot-matrix": "^1.1.0",
     "hubot-redis-brain": "0.0.3",
     "hubot-scripts": "^2.17.2",
+    "mespeak": "^2.0.1",
     "moment": "^2.16.0",
     "mopidy": "^0.5.0",
+    "mpd": "^1.3.0",
+    "stream": "0.0.2",
     "twit": "^2.2.5"
   },
   "engines": {

@@ -69,7 +69,7 @@ module.exports = (robot) ->
     if online
       console.log mopidy.playback
       mopidy.playback.setVolume(newVolume)
-      message.send("Set volume to #{newVolume}")
+      message.send("Setting volume to #{newVolume}...")
     else
       message.send('Mopidy is offline')
 

@@ -33,8 +33,6 @@ client = mpd.connect config
 host = process.env.HUBOT_HOST_IP
 port = process.env.EXPRESS_PORT
 
-googleSpeech = require 'google-speech'
-
 
 module.exports = (robot) ->
 

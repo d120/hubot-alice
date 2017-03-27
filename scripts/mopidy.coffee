@@ -8,18 +8,22 @@
 #  HUBOT_MOPIDY_WEBSOCKETURL (eg. ws://localhost:6680/mopidy/ws/)
 #
 # Commands:
-#   set volume <v> - set volume to numeric value 0 to 100
-#   volume? - show current volume
-#   what's playing? - show current song
-#   current playlist?`- show current playlist
-#   play <query> - search for a matching song and play it
-#   next track - play next track in playlist
-#   mute - set volume to 0
-#   unmute - set volume to 100
-#   pause music - pause playback
-#   resume music - resume playback
-#   start shuffle - set shuffle for current playlist
-#   stop shuffle - don't shuffle playlist anymore
+#   hubot set volume <v> - set volume to numeric value 0 to 100
+#   hubot volume? - show current volume
+#   hubot what's playing? - show current song
+#   hubot current playlist? - show current playlist
+#   hubot clear playlist - clear the current playlist
+#   hubot play <query> - search for a matching song and play it
+#   hubot up next <query> - add the song to the front of the playlist
+#   hubot queue <query> - add the song to the back of the playlist
+#   hubot next track - play next track in playlist
+#   hubot mute - set volume to 0
+#   hubot unmute - set volume to 100
+#   hubot pause music - pause playback
+#   hubot resume music - resume playback
+#   hubot start shuffle - set shuffle for current playlist
+#   hubot stop shuffle - don't shuffle playlist anymore
+#   hubot remove track <ids> - remove songs from playlist. Comma-separated list of timeline IDs (use current playlist to find the IDs)
 #
 # Author:
 #   Johannes Lauinger <jlauinger@d120.de>
@@ -36,16 +40,20 @@ mopidy.on 'state:online', ->
 mopidy.on 'state:offline', ->
   online = false
 
+
+delay = (ms, f) -> setTimeout f, ms
+
+
 module.exports = (robot) ->
 
-  robot.respond /current playlist\?/i, (msg) ->
+  robot.respond /(?:current )?playlist\??/i, (msg) ->
     if online
       printTracklist = (tracks) ->
         if tracks
-          msg.sendCode (tracks.map (t) -> "#{t.name} from #{t.album.name} by #{t.artists[0].name}").join "\n"
+          msg.sendCode (tracks.map (t) -> "#{t.tlid}: #{t.track.name} from #{t.track.album.name} by #{t.track.artists[0].name}").join "\n"
         else
           msg.send "Sorry, can't grab current playlist"
-      mopidy.tracklist.getTracks().then printTracklist, console.error.bind(console)
+      mopidy.tracklist.getTlTracks().then printTracklist, console.error.bind(console)
     else
       msg.send "Mopidy is offline"
 
@@ -57,14 +65,59 @@ module.exports = (robot) ->
           msg.reply "Sorry, can't find any track for #{q}"
           return
         track = result[0].tracks[0]
-        mopidy.tracklist.add([track], 0).then () ->
+        mopidy.tracklist.add([track], 1).then () ->
           mopidy.tracklist.getTlTracks().then (tlTracks) ->
-            mopidy.playback.play tlTracks[0]
+            mopidy.playback.play tlTracks[1]
             msg.send "Now playing #{track.name} from #{track.album.name} by #{track.artists[0].name}"
     else
       msg.send "Mopidy is offline"
 
-  robot.respond /set volume(?: to)? (\d+)/i, (message) ->
+  robot.respond /up next (.+)/i, (msg) ->
+    if online
+      q = msg.match[1]
+      mopidy.library.search({ any: q }).then (result) ->
+        unless result.length && result[0].tracks?.length
+          msg.reply "Sorry, can't find any track for #{q}"
+          return
+        track = result[0].tracks[0]
+        mopidy.tracklist.add([track], 1).then () ->
+          msg.send "Next song up is #{track.name} from #{track.album.name} by #{track.artists[0].name}"
+    else
+      msg.send "Mopidy is offline"
+
+  robot.respond /queue(?: up)? (.+)/i, (msg) ->
+    if online
+      q = msg.match[1]
+      mopidy.library.search({ any: q }).then (result) ->
+        unless result.length && result[0].tracks?.length
+          msg.reply "Sorry, can't find any track for #{q}"
+          return
+        track = result[0].tracks[0]
+        mopidy.tracklist.add([track]).then () ->
+          msg.send "I've added #{track.name} from #{track.album.name} by #{track.artists[0].name} to the playlist."
+    else
+      msg.send "Mopidy is offline"
+
+  robot.respond /clear playlist!?/i, (msg) ->
+    if online
+      mopidy.tracklist.clear().then (result) ->
+        msg.send "Playlist is now empty and sad :("
+    else
+      msg.send "Mopidy is offline"
+
+  robot.respond /remove track ([\d,]+)/i, (msg) ->
+    ids = msg.match[1].split(',').map (id) -> parseInt(id)
+    if online
+      mopidy.tracklist.remove({ tlid: ids }).then (tracks) ->
+        if tracks
+          msg.send "I've removed these tracks from the playlist:"
+          msg.sendCode (tracks.map (t) -> "#{t.track.name} from #{t.track.album.name} by #{t.track.artists[0].name}").join "\n"
+        else
+          msg.send "Sorry, didn't find any matching tracks on the playlist to remove."
+    else
+      msg.send "Mopidy is offline"
+
+  robot.respond /(?:set )?volume(?: to)? (\d+)/i, (message) ->
     newVolume = parseInt(message.match[1])
     if online
       console.log mopidy.playback
@@ -73,7 +126,7 @@ module.exports = (robot) ->
     else
       message.send('Mopidy is offline')
 
-  robot.respond /volume\?/i, (message) ->
+  robot.respond /volume\??/i, (message) ->
     if online
       printCurrentVolume = (volume) ->
         if volume
@@ -84,7 +137,7 @@ module.exports = (robot) ->
       message.send('Mopidy is offline')
     mopidy.playback.getVolume().then printCurrentVolume, console.error.bind(console)
 
-  robot.respond /what'?s playing/i, (message) ->
+  robot.respond /what'?s playing\??/i, (message) ->
     if online
       printCurrentTrack = (track) ->
         if track
@@ -97,15 +150,15 @@ module.exports = (robot) ->
 
   robot.respond /next track/i, (message) ->
     if online
-      mopidy.playback.next()
-      printCurrentTrack = (track) ->
-        if track
-          message.send("Now playing: #{track.name} by #{track.artists[0].name} from #{track.album.name}")
-        else
-          message.send("No track is playing")
+      mopidy.playback.next().then (result) ->
+        delay 1000, ->
+          mopidy.playback.getCurrentTrack().then (track) ->
+            if track
+              message.send("Now playing: #{track.name} by #{track.artists[0].name} from #{track.album.name}")
+            else
+              message.send("No track is playing")
     else
       message.send('Mopidy is offline')
-    mopidy.playback.getCurrentTrack().then printCurrentTrack, console.error.bind(console)
 
   robot.respond /mute/i, (message) ->
     if online
@@ -148,3 +201,4 @@ module.exports = (robot) ->
       message.send('Shuffling has been stopped')
     else
       message.send('Mopidy is offline')
+

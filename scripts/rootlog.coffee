@@ -29,8 +29,10 @@ module.exports = (robot) ->
       if err
         res.reply "sorry, there was an error :("
       res.reply "Sure thing, I noted it down!"
-      robot.messageRoom fss_room, "Heads up: #{username} added a new rootlog from chat. See the #fss-info:d120.de room for details or ask me what's changed."
       robot.messageCodeRoom info_room, content
+      unless res.message.room == fss_room
+        robot.messageRoom fss_room, "#{username} added a new rootlog from chat. See the #fss-info:d120.de room for all rootlogs or ask me what's changed."
+        robot.messageCodeRoom fss_room, content
 
 
   robot.respond /(what'?s? )?(has )?changed\??/i, (res) ->
@@ -55,7 +57,8 @@ module.exports = (robot) ->
       if err
         res.send '500 filesystem error\n'
 
-      robot.messageRoom fss_room, "Did you hear the word? #{data.username} added a new rootlog via HTTP. See the #fss-info:d120.de room for details or ask me what's changed."
+      robot.messageRoom fss_room, "#{data.username} added a new rootlog via HTTP. In addition to viewing it here, you can also look into the #fss-info:d120.de room or ask me what's changed."
+      robot.messageCodeRoom fss_room, content
       robot.messageCodeRoom info_room, content
       res.send '200 OK\n'
 

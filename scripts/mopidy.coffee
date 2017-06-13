@@ -27,7 +27,7 @@
 #
 # Author:
 #   Johannes Lauinger <jlauinger@d120.de>
-#   eriley (https://github.com/eriley
+#   eriley (https://github.com/eriley)
 
 
 Mopidy = require("mopidy")
